@@ -9,7 +9,9 @@ namespace glass {
         const Instruction &ins = program[pc++];
         switch (ins.type){
 
-        vm_case(Symbol) { break; }
+        vm_case(Symbol) {
+            break;
+        }
 
         vm_case(Halt){
             should_exit = true;
@@ -28,6 +30,13 @@ namespace glass {
 
         vm_case(AddrStack){
             registers[get(ins, I).dst] = (uintptr_t)&stack[base - get(ins, I).value];
+            break;
+        }
+
+        vm_case(Call){
+            push_stack<int>(base);
+            push_stack<int>(pc);
+            pc = get(ins, B).new_pc;
             break;
         }
 
@@ -101,9 +110,12 @@ namespace glass {
         }
     }
 
-    void IRBuilder::loadExpr(const std::shared_ptr<ExprNode> &expr, unsigned char reg){
+    uintptr_t IRBuilder::loadExpr(const std::shared_ptr<ExprNode> &expr, int reg){
         if (auto lit = std::dynamic_pointer_cast<LiteralExpr>(expr)){
-            emitImm(InstructionType::LoadImm, reg, strtoull(lit->lit.value.c_str(), NULL, 10));
+            uintptr_t val = strtoull(lit->lit.value.c_str(), NULL, 10);
+            if (reg != -1)
+                emitImm(InstructionType::LoadImm, reg, val);
+            return val;
         } else if (auto bin = std::dynamic_pointer_cast<BinaryExpr>(expr)){
             int rhs_reg = find_free();
             reserve(rhs_reg);
@@ -119,7 +131,17 @@ namespace glass {
             } else if (bin->op.type == TokenType::Asterisk){
                 emit(InstructionType::Mul, reg, rhs_reg);
             }
+        } else if (auto call = std::dynamic_pointer_cast<FuncCallExpr>(expr)){
+            emitCtrl(InstructionType::Call, loadExpr(call->func, -1));
+        } else if (auto ident = std::dynamic_pointer_cast<IdentExpr>(expr)) {
+            const auto &id = ident->ident.value;
+            if (symbols.find(id) != symbols.cend()){
+                if (reg != -1)
+                    emitImm(InstructionType::LoadImm, reg, symbols[id]);
+                return symbols[id];
+            }
         }
+        return -1;
     }
 
 }

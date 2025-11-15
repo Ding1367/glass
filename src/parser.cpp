@@ -43,6 +43,8 @@ namespace glass {
         std::shared_ptr<ExprNode> expr;
         if (test(TokenType::IntLiteral)){
             expr = std::make_shared<LiteralExpr>(lex.next());
+        } else if (test(TokenType::Identifier)){
+            expr = std::make_shared<IdentExpr>(lex.next());
         } else if (test(TokenType::Minus)){
             auto unary = std::make_shared<UnaryExpr>();
             unary->op = lex.next();
@@ -57,6 +59,16 @@ namespace glass {
         }
         while (1){
             Token tok = lex.lookahead();
+            if (tok == TokenType::OpenParentheses){
+                lex.next();
+                lex.next();
+                auto call = std::make_shared<FuncCallExpr>();
+                call->func = expr;
+                expr->parent = call;
+                call->parameters = {};
+                expr = call;
+                continue;
+            }
             int index = (int)tok.type - (int)TokenType::Equal;
             if (index >= sizeof(precedence_tbl)/sizeof(Precedence) || index < 0) break;
             if (precedence_tbl[index].lbp <= min_lbp) break;

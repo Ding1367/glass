@@ -28,6 +28,7 @@ int main(){
     for (auto &node : parser.nodes){
         builder.feed(node);
     }
+    builder.finalize();
     VM vm = {};
     vm.program = std::move(builder.ir);
     vm.pc = builder.symbols["main"];

@@ -14,8 +14,13 @@ namespace glass {
 
     struct ExprNode : ASTNode {
         virtual ~ExprNode() = default; 
+    };
 
-        size_t pos;
+    struct IdentExpr : ExprNode {
+        ~IdentExpr() override = default;
+
+        explicit IdentExpr(Token tok) : ident(tok){}
+        Token ident;
     };
 
     struct BlockExpr : ExprNode {
@@ -34,6 +39,13 @@ namespace glass {
     struct FuncDeclNode : DeclNode {
         ~FuncDeclNode() override = default;
         std::shared_ptr<BlockExpr> block = nullptr;
+    };
+
+    struct FuncCallExpr : ExprNode {
+        ~FuncCallExpr() override = default;
+
+        std::vector<std::shared_ptr<ExprNode>> parameters = {};
+        std::shared_ptr<ExprNode> func;
     };
 
     struct LiteralExpr : ExprNode {
