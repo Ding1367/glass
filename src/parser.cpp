@@ -54,8 +54,7 @@ namespace glass {
         } else if (test(TokenType::OpenCurly)){
             expr = parse_block_expr();
         } else {
-            std::cerr << "unexpected token" << std::endl;
-            exit(EXIT_FAILURE);
+            error("unexpected token");
         }
         while (1){
             Token tok = lex.lookahead();

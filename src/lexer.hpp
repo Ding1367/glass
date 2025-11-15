@@ -5,6 +5,12 @@
 #include <vector>
 
 namespace glass {
+    struct SourceLocation {
+        size_t pos;
+        int line;
+        int col;
+    };
+
     enum class TokenType {
         Illegal = -1,
         EndOfFile,
@@ -48,10 +54,19 @@ namespace glass {
         }
 
         Token next();
+
+        SourceLocation get_pos(){
+            return SourceLocation {
+                .pos = pos,
+                .line = line,
+                .col = col
+            };
+        }
     private:
         std::string input;
         size_t length;
         size_t pos = 0;
+        int line = 1, col = 1;
         std::optional<Token> lookahead_buf = {};
 
         std::string read_word(char init);
@@ -69,7 +84,13 @@ namespace glass {
         std::optional<char> advance(){
             if (pos >= length)
                 return {};
-            return input[pos++];
+            char ch = input[pos++];
+            if (ch == '\n'){
+                col = 0;
+                line++;
+            }
+            col++;
+            return ch;
         }
     };
 

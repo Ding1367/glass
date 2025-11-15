@@ -1,6 +1,7 @@
 #ifndef __PARSER_HPP__
 #define __PARSER_HPP__
 #include <vector>
+#include <sstream>
 #include <variant>
 #include <iostream>
 #include <stdint.h>
@@ -84,8 +85,8 @@ namespace glass {
         Token expect(TokenType type, const std::string &name){
             if (test(type))
                 return lex.next();
-            std::cerr << "expected " << name << ", got type " << (int)lex.lookahead().type << std::endl;
-            exit(EXIT_FAILURE);
+            error("expected {}, got type {}", name, (int)lex.lookahead().type);
+            return {};
         }
 
         bool next_node();
@@ -112,6 +113,43 @@ namespace glass {
                 nodes.push_back(node);
             else
                 scope->nodes.push_back(node);
+        }
+
+        template <typename ...Args>
+        void error(const std::string &fmt, Args... args){
+            error(lex.get_pos(), fmt, std::forward<Args>(args)...);
+        }
+
+        template <typename T>
+        void error_helper(std::ostringstream &builder, const char *&ptr, T t){
+            const char *next = strchr(ptr, '{');
+            if (!next){
+                builder << ptr;
+                return;
+            }
+            size_t len = next - ptr;
+            std::string segment(ptr, len);
+            const char *end = next;
+            while (*end != '}')
+                end++;
+            ptr = ++end;
+            builder << segment << t;
+        }
+
+        template <typename ...Args>
+        void error(SourceLocation loc, const std::string &fmt, Args... args){
+            std::ostringstream builder = {};
+            builder << loc.line << ":" << loc.col << ": ";
+            
+            const char *ptr = fmt.c_str();
+            
+            if constexpr (sizeof...(args) > 0)
+                (error_helper(builder, ptr, args), ...);
+            else
+                builder << fmt;
+
+            std::cerr << builder.str() << std::endl;
+            exit(EXIT_FAILURE);
         }
     };
 }

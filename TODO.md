@@ -1,6 +1,12 @@
 ### Todo list
 - [ ] Task 1: Make the language Turing-complete.
+    - [ ] Task 1.1: Add enough branching.
 - [ ] Task 2: Add a type system and semantic analysis.
-- [ ] Task 3: Make better errors and make the lexer track more than byte position!
+- [ ] Task 3: Make better errors!
+    - [x] Task 3.1: Track more than byte position in the lexer.
 - [ ] Task 4: Make the compiler compile to machine code.
 - [ ] Task 5: Improve the REPL!! It's SO BAD RIGHT NOW!!
+    - [x] Task 5.1: Try to use readline
+    - [x] Task 5.2: Allow expressions to be evaluated without explicit return
+    - [ ] Task 5.3: Add continuations for unfinished expressions
+- [ ] Task 6: 
